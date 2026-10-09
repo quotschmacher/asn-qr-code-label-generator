@@ -1,6 +1,9 @@
 name: Publish container image
 
 on:
+  push:
+    branches:
+      - dev
   workflow_dispatch:
     inputs:
       image_tag:
@@ -33,7 +36,9 @@ jobs:
 
       - name: Prepare image name
         id: image
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=${{ inputs.image_tag || 'dev' }}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -41,5 +46,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ steps.image.outputs.name }}:${{ inputs.image_tag }}
+            ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
             ${{ steps.image.outputs.name }}:${{ github.sha }}
